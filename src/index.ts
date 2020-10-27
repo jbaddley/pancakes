@@ -19,8 +19,8 @@ program
   .version("0.0.1")
   .description("An example CLI for flipping pancakes to their happy side (+)")
   .option("-s, --stacks <stacks>", 'Stacks of pancakes. Example: "-,-+,+-,+++,--+-". If set to "random", will generate random stacks.')
-  .option("-c, --cases <cases>", 'Number of test cases to run if "--stacks" is set to "random"')
-  .option("-ml, --max-length <length>", 'Max number of pancakes to add if "--stacks" is set to "random"')
+  .option("-c, --cases <cases>", 'Number of test cases to run if "--stacks" is set to "random". Must be between 1 and 100 inclusive.')
+  .option("-ml, --max-length <length>", 'Max number of pancakes to add if "--stacks" is set to "random". Must be between 1 and 50 inclusive.')
 
 /*
   Interfaces
@@ -47,7 +47,7 @@ class PancakeFlipper {
   }
 
   private generateStack = (maxStackLength: number) => {
-    const length = Math.floor(Math.random() * (maxStackLength - 2)) + 2
+    const length = Math.floor(Math.random() * (maxStackLength - 1)) + 1
     return _.range(length).map(this.randomSide).join("")
   }
 
@@ -81,7 +81,7 @@ class PancakeFlipper {
 
   private printLine([a, b, c, d, ...rest]: any[], color: any) {
     // add padding to each column and pring out results
-    a = color(String(a).padEnd(2, " "))
+    a = color(String(a).padEnd(3, " "))
     b = color(String(b).padEnd(20, " "))
     c = color(String(c).padStart(3, " ").padEnd(20, " "))
     d = color(String(d).padEnd(25, " "))
@@ -122,10 +122,6 @@ function init() {
   // clear the console to make room
   clear()
 
-  // print out banner with padding
-  console.log(chalk.red(figlet.textSync("Happy Pancakes", { horizontalLayout: "full" })))
-  console.log()
-
   // create the user input and create a new PancakeFlipper instance
   const input = {
     stacks: program.stacks,
@@ -133,11 +129,38 @@ function init() {
     testCases: program.cases && +program.cases,
   } as UserInput
 
+  if (input.testCases) {
+    if (input.testCases > 100) {
+      console.error("Please enter a number of test cases of no more than 100")
+      process.exit(0)
+    }
+    if (input.testCases < 1) {
+      console.error("Please enter a number of test cases of more than 0")
+      process.exit(0)
+    }
+  }
+
+  if (input.maxStackLength) {
+    if (input.maxStackLength > 50) {
+      console.error("Please enter a max stack length of no more than 100")
+      process.exit(0)
+    }
+    if (input.maxStackLength < 1) {
+      console.error("Please enter a max stack length of more than 0")
+      process.exit(0)
+    }
+  }
+
+  // print out banner with padding
+  console.log(chalk.red(figlet.textSync("Happy Pancakes", { horizontalLayout: "full" })))
+  console.log()
+
   const pancakeFlipper = new PancakeFlipper(input)
 
   // run the flipper and add padding to the output
   pancakeFlipper.run()
   console.log()
+  process.exit(0)
 }
 
 init()
